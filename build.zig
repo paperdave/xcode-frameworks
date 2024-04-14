@@ -10,22 +10,10 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    addPaths(&lib.root_module); // just for testing
+    lib.root_module.addSystemFrameworkPath(b.path("Frameworks"));
+    lib.root_module.addSystemIncludePath(b.path("include"));
+    lib.root_module.addLibraryPath(b.path("lib"));
     lib.linkLibC();
-    lib.installHeadersDirectory("include", ".");
+    lib.installHeadersDirectory(b.path("include"), ".", .{});
     b.installArtifact(lib);
-}
-
-pub fn addPaths(mod: *std.Build.Module) void {
-    mod.addSystemFrameworkPath(.{ .path = sdkPath("/Frameworks") });
-    mod.addSystemIncludePath(.{ .path = sdkPath("/include") });
-    mod.addLibraryPath(.{ .path = sdkPath("/lib") });
-}
-
-fn sdkPath(comptime suffix: []const u8) []const u8 {
-    if (suffix[0] != '/') @compileError("suffix must be an absolute path");
-    return comptime blk: {
-        const root_dir = std.fs.path.dirname(@src().file) orelse ".";
-        break :blk root_dir ++ suffix;
-    };
 }
